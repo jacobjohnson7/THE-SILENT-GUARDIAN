@@ -1,48 +1,70 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F8F8F8"
-    android:padding="24dp"
+    android:background="#F4F7FA"
+    android:padding="28dp"
     tools:context=".MainActivity">
 
     <TextView
         android:id="@+id/titleText"
-        android:layout_width="0dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="The Silent Guardian"
-        android:textSize="28sp"
-        android:textStyle="bold"
-        android:textColor="@color/black"
-        app:layout_constraintTop_toTopOf="parent"
+        android:text="Silent Guardian"
+        android:textColor="#1A1C1E"
+        android:textSize="32sp"
+        android:fontFamily="sans-serif-black"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <View
+        android:id="@+id/indicatorDot"
+        android:layout_width="8dp"
+        android:layout_height="8dp"
+        android:layout_marginStart="8dp"
+        android:background="#333333"
+        app:layout_constraintBottom_toBottomOf="@id/titleText"
+        app:layout_constraintStart_toEndOf="@id/titleText"
+        app:layout_constraintTop_toTopOf="@id/titleText" />
+
+    <ImageButton
+        android:id="@+id/btnSOS"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginEnd="8dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:src="@android:drawable/ic_menu_call"
+        android:scaleType="centerInside"
+        app:tint="#D32F2F"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/titleText"
+        app:layout_constraintBottom_toBottomOf="@id/titleText"/>
 
     <TextView
         android:id="@+id/instructionText"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="Tap 'Activate' to start real-time sound event monitoring."
-        android:textSize="16sp"
-        android:textColor="#555555"
+        android:text="Real-time environment monitoring active."
+        android:textColor="#6C757D"
+        android:textSize="14sp"
+        android:fontFamily="sans-serif-medium"
         app:layout_constraintTop_toBottomOf="@id/titleText"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintStart_toStartOf="parent" />
 
     <androidx.cardview.widget.CardView
         android:id="@+id/cardStatus"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginTop="32dp"
-        android:layout_marginBottom="32dp"
-        app:cardCornerRadius="16dp"
-        app:cardElevation="8dp"
-        app:cardBackgroundColor="#2E7D32"
+        android:layout_marginBottom="40dp"
+        app:cardCornerRadius="40dp"
+        app:cardElevation="12dp"
+        app:cardBackgroundColor="#FFFFFF"
         app:layout_constraintTop_toBottomOf="@id/instructionText"
-        app:layout_constraintBottom_toTopOf="@id/btnToggle"
+        app:layout_constraintBottom_toTopOf="@id/buttonsLayout"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
@@ -51,50 +73,81 @@
             android:layout_height="match_parent"
             android:orientation="vertical"
             android:gravity="center"
-            android:padding="32dp">
+            android:padding="24dp">
 
-            <ImageView
-                android:id="@+id/iconStatus"
-                android:layout_width="100dp"
-                android:layout_height="100dp"
-                android:src="@android:drawable/ic_lock_idle_low_battery"
-                app:tint="@android:color/white"
-                android:contentDescription="Status Icon" />
+            <FrameLayout
+                android:id="@+id/statusRing"
+                android:layout_width="200dp"
+                android:layout_height="200dp"
+                android:background="@drawable/status_ring_inactive">
+
+                <ImageView
+                    android:id="@+id/iconStatus"
+                    android:layout_width="80dp"
+                    android:layout_height="80dp"
+                    android:layout_gravity="center"
+                    android:src="@android:drawable/ic_btn_speak_now"
+                    app:tint="#1A1C1E" />
+            </FrameLayout>
 
             <TextView
                 android:id="@+id/txtLabelTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:text="CURRENT STATUS"
-                android:textSize="18sp"
-                android:textColor="@android:color/white"
+                android:layout_marginTop="32dp"
+                android:text="SYSTEM STATUS"
+                android:textSize="12sp"
+                android:letterSpacing="0.2"
+                android:textColor="#ADB5BD"
                 android:textStyle="bold"/>
 
             <TextView
                 android:id="@+id/txtLabel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="Disabled"
+                android:layout_marginTop="4dp"
+                android:text="Listening..."
                 android:textSize="36sp"
-                android:textColor="@android:color/white"
-                android:textStyle="bold"
-                android:textAlignment="center"
-                tools:text="Crying, sobbing" />
+                android:textColor="#1A1C1E"
+                android:fontFamily="sans-serif-condensed-light"
+                android:textAlignment="center" />
         </LinearLayout>
     </androidx.cardview.widget.CardView>
-    <Button
-        android:id="@+id/btnToggle"
+
+    <LinearLayout
+        android:id="@+id/buttonsLayout"
         android:layout_width="0dp"
-        android:layout_height="60dp"
-        android:text="ACTIVATE GUARDIAN"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        android:textColor="@android:color/white"
-        android:background="@drawable/rounded_button_bg"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnToggle"
+            android:layout_width="match_parent"
+            android:layout_height="72dp"
+            android:text="DEACTIVATE"
+            android:textSize="16sp"
+            android:textColor="#FFFFFF"
+            app:cornerRadius="20dp"
+            android:backgroundTint="#1A1C1E"
+            app:rippleColor="#33FFFFFF"
+            android:layout_marginBottom="12dp"
+            app:icon="@android:drawable/ic_media_pause"
+            app:iconGravity="textStart"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSpeechToText"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="72dp"
+            android:text="Open Translator"
+            android:textSize="16sp"
+            android:textColor="#1A1C1E"
+            app:strokeColor="#E0E0E0"
+            app:strokeWidth="2dp"
+            app:cornerRadius="20dp" />
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,9 +1,10 @@
-package com.example.silentguardian; // MATCH YOUR PACKAGE NAME
+package com.example.silentguardian;
 
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
@@ -12,8 +13,11 @@ import android.os.Bundle;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.os.VibratorManager;
+import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.FrameLayout;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
@@ -42,6 +46,8 @@ public class MainActivity extends AppCompatActivity {
     private TextView txtLabel;
     private ImageView iconStatus;
     private Button btnToggle;
+    private View indicatorDot;
+    private FrameLayout statusRing;
 
     // LOGIC
     private boolean isRecording = false;
@@ -70,6 +76,8 @@ public class MainActivity extends AppCompatActivity {
         txtLabel = findViewById(R.id.txtLabel);
         iconStatus = findViewById(R.id.iconStatus);
         btnToggle = findViewById(R.id.btnToggle);
+        indicatorDot = findViewById(R.id.indicatorDot);
+        statusRing = findViewById(R.id.statusRing);
 
         // Init Tools
         classifier = new AudioClassifier(this);
@@ -88,6 +96,18 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        setupSOS();
+
+        // STT Button Logic
+        Button btnSpeechToText = findViewById(R.id.btnSpeechToText);
+        btnSpeechToText.setOnClickListener(v -> {
+            // Stop monitoring if active before switching
+            if (isRecording) stopListening();
+            
+            android.content.Intent intent = new android.content.Intent(MainActivity.this, SpeechToTextActivity.class);
+            startActivity(intent);
+        });
+
         updateUI("Disabled", false, false);
     }
 
@@ -102,8 +122,8 @@ public class MainActivity extends AppCompatActivity {
 
     private void startListening() {
         isRecording = true;
-        btnToggle.setText("DEACTIVATE GUARDIAN");
-        btnToggle.setBackgroundColor(Color.parseColor("#444444"));
+        btnToggle.setText("DEACTIVATE");
+        btnToggle.setBackgroundColor(Color.parseColor("#1A1C1E")); // Dark for active
 
         // 1. Setup Mic
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) return;
@@ -178,9 +198,8 @@ public class MainActivity extends AppCompatActivity {
 
     private void stopListening() {
         isRecording = false;
-        btnToggle.setText("ACTIVATE GUARDIAN");
-        // Use your custom color or a default one
-        btnToggle.setBackgroundColor(Color.parseColor("#303F9F"));
+        btnToggle.setText("ACTIVATE");
+        btnToggle.setBackgroundColor(Color.parseColor("#333333")); // Grey for inactive
 
         try {
             if (audioRecord != null) {
@@ -197,34 +216,64 @@ public class MainActivity extends AppCompatActivity {
         updateUI("Disabled", false, false);
     }
 
-    // UPDATED UI METHOD
+    // UPDATED UI METHOD FOR NEW LAYOUT
     private void updateUI(String sound, boolean currentlyDangerous, boolean triggerAlert) {
         txtLabel.setText(sound);
+        
+        // Define colors
+        int colorDanger = Color.parseColor("#FF5252"); // Red
+        int colorSafe = Color.parseColor("#4CAF50");   // Green
+        int colorInactive = Color.parseColor("#E0E0E0"); // Grey
+        int colorTextDark = Color.parseColor("#1A1C1E");
 
         if (triggerAlert) {
             // --- RED ALERT ---
-            cardStatus.setCardBackgroundColor(Color.RED);
+            // Update Ring Color (Programmatically changing stroke if possible, or tint)
+            updateRingColor(colorDanger);
+            
             iconStatus.setImageResource(android.R.drawable.ic_dialog_alert);
-            getWindow().getDecorView().setBackgroundColor(Color.RED);
+            iconStatus.setColorFilter(colorDanger);
+            
+            indicatorDot.setBackgroundColor(colorDanger);
+            
             triggerVibration();
         } else if (sound.equals("Monitoring...") || currentlyDangerous) {
             // --- MONITORING (Green) ---
-            // Note: If 'currentlyDangerous' is true but 'triggerAlert' is false,
-            // it means we saw a danger sound but it hasn't reached 3 votes yet.
-            // We keep it green/neutral until confirmed.
-            cardStatus.setCardBackgroundColor(Color.parseColor("#4CAF50"));
-            iconStatus.setImageResource(android.R.drawable.ic_lock_idle_low_battery);
-            getWindow().getDecorView().setBackgroundColor(Color.parseColor("#F8F8F8"));
+            updateRingColor(colorSafe);
+            
+            iconStatus.setImageResource(android.R.drawable.ic_btn_speak_now);
+            iconStatus.setColorFilter(colorSafe);
+            
+            indicatorDot.setBackgroundColor(colorSafe);
+            
         } else if (sound.equals("Disabled")) {
-            // --- OFF (Brown) ---
-            cardStatus.setCardBackgroundColor(Color.parseColor("#795548"));
+            // --- OFF (Grey) ---
+            updateRingColor(colorInactive);
+            
             iconStatus.setImageResource(android.R.drawable.ic_lock_power_off);
+            iconStatus.setColorFilter(Color.GRAY);
+            
+            indicatorDot.setBackgroundColor(Color.GRAY);
         } else {
-            // --- SAFE / BACKGROUND (Dark Green) ---
-            cardStatus.setCardBackgroundColor(Color.parseColor("#2E7D32"));
-            iconStatus.setImageResource(android.R.drawable.ic_lock_idle_low_battery);
-            getWindow().getDecorView().setBackgroundColor(Color.parseColor("#F8F8F8"));
+            // --- SAFE / BACKGROUND (Green) ---
+            updateRingColor(colorSafe);
+            
+            iconStatus.setImageResource(android.R.drawable.ic_btn_speak_now);
+            iconStatus.setColorFilter(colorSafe);
+            
+            indicatorDot.setBackgroundColor(colorSafe);
         }
+    }
+
+    private void updateRingColor(int color) {
+        // Create a new shape or modify existing one
+        GradientDrawable shape = new GradientDrawable();
+        shape.setShape(GradientDrawable.OVAL);
+        shape.setStroke(12, color); // 12px stroke
+        shape.setSize(200, 200);
+        shape.setColor(Color.TRANSPARENT);
+        
+        statusRing.setBackground(shape);
     }
 
     private boolean isDangerEvent(String sound) {
@@ -259,11 +308,68 @@ public class MainActivity extends AppCompatActivity {
         }, 100);
     }
 
+    // --- SOS LOGIC ---
+    private void setupSOS() {
+        ImageButton btnSOS = findViewById(R.id.btnSOS);
+        btnSOS.setOnClickListener(v -> handleSOSClick());
+        btnSOS.setOnLongClickListener(v -> {
+            showSetContactDialog();
+            return true;
+        });
+    }
+
+    private void handleSOSClick() {
+        android.content.SharedPreferences prefs = getSharedPreferences("SilentGuardianPrefs", MODE_PRIVATE);
+        String emergencyNumber = prefs.getString("emergency_contact", null);
+
+        if (emergencyNumber == null) {
+            showSetContactDialog();
+        } else {
+            makeCall(emergencyNumber);
+        }
+    }
+
+    private void showSetContactDialog() {
+        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this);
+        builder.setTitle("Set Emergency Contact");
+
+        final android.widget.EditText input = new android.widget.EditText(this);
+        input.setInputType(android.text.InputType.TYPE_CLASS_PHONE);
+        input.setHint("Enter phone number");
+        builder.setView(input);
+
+        builder.setPositiveButton("Save", (dialog, which) -> {
+            String number = input.getText().toString();
+            if (!number.isEmpty()) {
+                getSharedPreferences("SilentGuardianPrefs", MODE_PRIVATE)
+                        .edit()
+                        .putString("emergency_contact", number)
+                        .apply();
+                android.widget.Toast.makeText(this, "Emergency Contact Saved", android.widget.Toast.LENGTH_SHORT).show();
+            }
+        });
+        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
+
+        builder.show();
+    }
+
+    private void makeCall(String number) {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CALL_PHONE}, 101);
+        } else {
+            android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_CALL);
+            intent.setData(android.net.Uri.parse("tel:" + number));
+            startActivity(intent);
+        }
+    }
+
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == 100 && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             startListening();
+        } else if (requestCode == 101 && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            handleSOSClick(); // Retry call after permission granted
         }
     }
 }
