@@ -127,14 +127,14 @@
             android:id="@+id/btnToggle"
             android:layout_width="match_parent"
             android:layout_height="72dp"
-            android:text="DEACTIVATE"
+            android:text="ACTIVATE"
             android:textSize="16sp"
             android:textColor="#FFFFFF"
             app:cornerRadius="20dp"
-            android:backgroundTint="#1A1C1E"
+            android:backgroundTint="#2E7D32"
             app:rippleColor="#33FFFFFF"
             android:layout_marginBottom="12dp"
-            app:icon="@android:drawable/ic_media_pause"
+            app:icon="@android:drawable/ic_media_play"
             app:iconGravity="textStart"/>
 
         <com.google.android.material.button.MaterialButton
@@ -147,6 +147,21 @@
             android:textColor="#1A1C1E"
             app:strokeColor="#E0E0E0"
             app:strokeWidth="2dp"
+            app:cornerRadius="20dp"
+            app:rippleColor="#5503A9F4"
+            android:layout_marginBottom="12dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnHistory"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="72dp"
+            android:text="View History"
+            android:textSize="16sp"
+            android:textColor="#1A1C1E"
+            app:strokeColor="#E0E0E0"
+            app:strokeWidth="2dp"
+            app:rippleColor="#5503A9F4"
             app:cornerRadius="20dp" />
     </LinearLayout>
 

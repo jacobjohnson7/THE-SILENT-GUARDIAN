@@ -55,6 +55,9 @@ public class MainActivity extends AppCompatActivity {
     private AudioClassifier classifier;
     private Vibrator vibrator;
     private Thread recordingThread;
+    
+    // TRIGGER STATE
+    private String lastSavedSound = "";
 
     // CRITICAL DANGER LIST
     private final List<String> DANGER_WORDS = Arrays.asList(
@@ -108,6 +111,16 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
+        // History Button Logic
+        Button btnHistory = findViewById(R.id.btnHistory);
+        btnHistory.setOnClickListener(v -> {
+            // Stop monitoring if active before switching
+            if (isRecording) stopListening();
+            
+            android.content.Intent intent = new android.content.Intent(MainActivity.this, HistoryActivity.class);
+            startActivity(intent);
+        });
+
         updateUI("Disabled", false, false);
     }
 
@@ -123,7 +136,7 @@ public class MainActivity extends AppCompatActivity {
     private void startListening() {
         isRecording = true;
         btnToggle.setText("DEACTIVATE");
-        btnToggle.setBackgroundColor(Color.parseColor("#1A1C1E")); // Dark for active
+        btnToggle.setBackgroundTintList(android.content.res.ColorStateList.valueOf(Color.parseColor("#C62828"))); // Dark Red when active
 
         // 1. Setup Mic
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) return;
@@ -188,9 +201,17 @@ public class MainActivity extends AppCompatActivity {
         // 3. Decide: Alert OR Normal
         if (dangerCount >= DANGER_VOTE_THRESHOLD) {
             // CONFIRMED DANGER (3 out of 5 frames were dangerous)
+            if (!latestDangerSound.equals(lastSavedSound)) {
+                HistoryManager.saveEvent(this, latestDangerSound);
+                lastSavedSound = latestDangerSound;
+            }
             updateUI(latestDangerSound, true, true);
         } else {
             // NORMAL (Even if 1 frame was danger, we ignore it until it's confirmed)
+            if (!currentSound.equals(lastSavedSound)) {
+                HistoryManager.saveEvent(this, currentSound);
+                lastSavedSound = currentSound;
+            }
             // We pass 'false' for triggerAlert
             updateUI(currentSound, isDangerEvent(currentSound), false);
         }
@@ -199,7 +220,7 @@ public class MainActivity extends AppCompatActivity {
     private void stopListening() {
         isRecording = false;
         btnToggle.setText("ACTIVATE");
-        btnToggle.setBackgroundColor(Color.parseColor("#333333")); // Grey for inactive
+        btnToggle.setBackgroundTintList(android.content.res.ColorStateList.valueOf(Color.parseColor("#2E7D32"))); // Dark Green when inactive
 
         try {
             if (audioRecord != null) {
